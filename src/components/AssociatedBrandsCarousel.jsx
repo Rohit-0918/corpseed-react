@@ -1,76 +1,103 @@
-import React, { useRef } from "react";
-import { Swiper, SwiperSlide } from "swiper/react";
-import "swiper/css";
-import "swiper/css/free-mode";
-import "swiper/css/autoplay";
-import { Autoplay, FreeMode } from "swiper/modules";
-
-import image1 from "../assets/carouselImages/image1.png";
-import image2 from "../assets/carouselImages/image2.png";
-import image3 from "../assets/carouselImages/image3.png";
-import image4 from "../assets/carouselImages/image4.png";
-import image5 from "../assets/carouselImages/image5.png";
-import image6 from "../assets/carouselImages/image6.png";
-import image7 from "../assets/carouselImages/image7.png";
-import image8 from "../assets/carouselImages/image8.png";
-import image9 from "../assets/carouselImages/image9.png";
-import image10 from "../assets/carouselImages/image10.png";
-import image11 from "../assets/carouselImages/image11.png";
-import image12 from "../assets/carouselImages/image12.png";
-import image13 from "../assets/carouselImages/image13.png";
-import image14 from "../assets/carouselImages/image14.png";
-import image15 from "../assets/carouselImages/image15.png";
-
-const images = [
-  image1, image2, image3, image4, image5,
-  image6, image7, image8, image9, image10,
-  image11, image12, image13, image14, image15,
-];
+import React, { useEffect, useState, useRef } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { useParams } from "react-router-dom";
+import { getHomeData } from "../toolkit/slices/HomeSlice";
 
 const AssociatedBrandsCarousel = () => {
-  const swiperRef = useRef(null);
+  const { slug } = useParams();
+  const dispatch = useDispatch();
+
+  const [scrolling, setScrolling] = useState(true);
+  const containerRef = useRef(null);
+
+  useEffect(() => {
+    if (slug) dispatch(getHomeData(slug));
+  }, [slug, dispatch]);
+
+  const { data, loading, error } = useSelector((state) => state.home);
+
+  const formatImageUrl = (url) => {
+    const BASE_URL =
+      "https://corpseed-main.s3.ap-south-1.amazonaws.com/corpseed/";
+    if (!url || url === "null" || url === null) return BASE_URL;
+    return url.replace(/^null\/?|^null/, BASE_URL);
+  };
+
+  const clients =
+    data?.data?.clients?.map((client) => ({
+      image: formatImageUrl(client.image),
+      name: client.name,
+      alt: client.alt || client.name,
+    })) || [];
+
+  useEffect(() => {
+    if (!scrolling || !containerRef.current) return;
+
+    const scrollContainer = containerRef.current;
+    let frameId;
+
+    const scrollStep = () => {
+      if (scrollContainer.scrollLeft >= scrollContainer.scrollWidth / 2) {
+        scrollContainer.scrollLeft = 0;
+      } else {
+        scrollContainer.scrollLeft += 1;
+      }
+      frameId = requestAnimationFrame(scrollStep);
+    };
+
+    frameId = requestAnimationFrame(scrollStep);
+
+    return () => cancelAnimationFrame(frameId);
+  }, [scrolling, clients]);
+
+  const scrollRight = () => {
+    containerRef.current.scrollLeft += 200;
+  };
+
+  const scrollLeft = () => {
+    containerRef.current.scrollLeft -= 200;
+  };
+
+  if (loading) return <p>Loading clients...</p>;
+  if (error) return <p className="text-red-500">{error}</p>;
 
   return (
-    <div className="relative w-[90%] mx-auto">
+    <div className="w-full px-3 md:px-20 flex mx-auto pb-20">
+      <div className="w-full flex items-center gap-4">
+        <button className="text-3xl font-bold px-3" onClick={scrollRight}>
+          &#8249;
+        </button>
 
-      <Swiper
-        modules={[Autoplay, FreeMode]}
-        slidesPerView={10}
-        spaceBetween={10}
-        loop={true}
-        loopedSlides={images.length * 2}   
-        freeMode={{
-          enabled: true,
-          momentum: false,
-        }}
-        autoplay={{
-          delay: 0,
-          disableOnInteraction: false,
-          pauseOnMouseEnter: false,
-        }}
-        speed={1000} 
-        allowTouchMove={false}
-        onSwiper={(swiper) => (swiperRef.current = swiper)}
-        style={{
-          transitionTimingFunction: "linear",
-        }}
-      >
-
-        {[...images, ...images].map((src, index) => (   // duplicate slides
-          <SwiperSlide key={index}>
-            <div className="flex justify-center items-center">
+        <div
+          className="relative overflow-hidden h-[60px] whitespace-nowrap w-[90%]"
+          onMouseEnter={() => setScrolling(false)}
+          onMouseLeave={() => setScrolling(true)}
+          ref={containerRef}
+          style={{ cursor: "grab" }}
+        >
+          {[...clients, ...clients].map((item, index) => (
+            <div
+              key={index}
+              className="inline-block mx-4 relative group"
+              style={{ width: "100px" }}
+            >
               <img
-                src={src}
-                className="w-[60px] h-[60px] object-contain rounded-md"
-                alt=""
+                src={item.image}
+                alt={item.alt}
+                className="w-full h-15 object-contain "
               />
+
+              <div className="absolute top-0 left-1/2 transform -translate-x-1/2 mt-1 px-2 py-1 bg-black bg-opacity-70 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
+                {item.name}
+              </div>
             </div>
-          </SwiperSlide>
-        ))}
+          ))}
+        </div>
 
-      </Swiper>
-
-      <div className="mt-[50px]"></div>
+        <button className="text-3xl font-bold px-3" onClick={scrollLeft}>
+          &#8250;
+        </button>
+      </div>
     </div>
   );
 };

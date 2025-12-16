@@ -4,8 +4,8 @@ const {heroui} = require("@heroui/theme");
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   content: [
-    "./node_modules/@heroui/theme/dist/components/(card|ripple).js",
-  ],
+    "./node_modules/@heroui/theme/dist/components/(accordion|card|divider|ripple).js"
+],
   theme: {
     extend: {},
   },
