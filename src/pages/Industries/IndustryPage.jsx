@@ -198,10 +198,9 @@ const IndustryPage = () => {
         </div>
 
         {/* Call positioned bottom-right, half inside & half outside */}
-<div className="absolute right-15 bottom-0 translate-y-[30%] hidden sm:block">
-  <Call />
-</div>
-
+        <div className="absolute right-15 bottom-0 translate-y-[30%] hidden sm:block">
+          <Call />
+        </div>
       </div>
 
       <div className="py-15 px-4  sm:px-6 md:px-10 lg:px-20 mx-auto flex flex-col gap-10">
@@ -249,9 +248,9 @@ const IndustryPage = () => {
         {/* Tabs & Form */}
         <div className="flex flex-col lg:flex-row gap-6 lg:h-[700px] h-auto">
           {/* Tabs */}
-          <div className="w-full lg:w-2/3 flex flex-col lg:h-full h-auto">
+          <div className="w-full border  border-gray-200  lg:w-2/3 flex flex-col lg:h-full h-auto">
             {/* Tabs Header */}
-            <div className="flex items-center gap-2 p-2 overflow-x-hidden">
+            <div className="flex items-center gap-2 py-2 border-b border-b-gray-200 overflow-x-hidden">
               <button
                 onClick={() => scrollTabs("left")}
                 className="px-3 cursor-pointer py-2"
@@ -267,11 +266,22 @@ const IndustryPage = () => {
                   <button
                     key={index}
                     onClick={() => scrollToContent(index)}
-                    className="px-3 sm:px-4 py-2 cursor-pointer rounded-md text-black whitespace-nowrap hover:bg-gray-100 focus:outline-none"
+                    className="
+      relative px-3 sm:px-4 py-2 cursor-pointer
+      text-black whitespace-nowrap rounded-md
+      focus:outline-none
+      after:absolute after:left-0 after:bottom-0
+      after:h-[3px] after:w-full
+      after:bg-blue-500
+      after:scale-x-0 after:origin-left
+      after:transition-transform after:duration-300 after:ease-in-out
+      hover:after:scale-x-100
+    "
                   >
                     {item.tab}
                   </button>
                 ))}
+
                 <style>
                   {`
             div::-webkit-scrollbar {

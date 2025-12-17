@@ -1,13 +1,11 @@
 import React, { useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import Header from "../../components/Header";
-import Footer from "../../components/Footer";
 import PressReleaseImg from "./assets/PressRelease.png"
 import { useDispatch, useSelector } from "react-redux";
 import { getHomeData } from "../../toolkit/slices/HomeSlice"
 import Call from "../../components/Call";
 import ScheduleACallback from "../../components/ScheduleACallback"
-import { nav } from "framer-motion/client";
+
 
 const PressRelease = () => {
   const navigate = useNavigate();

@@ -18,9 +18,7 @@ import IndusPage from "./pages/Industries/IndusPage";
 import TermsOfUse from "./pages/TermsOfUse";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import KnowledgeCenterPage from "./pages/KnowledgeCenter/KnowledgeCenterPage";
-import Feedback from "./pages/PressRelease/components/Feedback";
-import SocialMedia from "./pages/PressRelease/components/SocialMedia";
-
+import Consulation from "./pages/KnowledgeCenter/components/Consulation";
 
 function App() {
   return (
@@ -43,7 +41,7 @@ function App() {
         <Route path="/industries" element={<IndusPage />} />
         <Route path = "/pages/terms-of-use" element = {<TermsOfUse/>}/>
         <Route path = "/pages/privacy-policy" element = {<PrivacyPolicy/>}/>
-        <Route path="/demo" element={<Feedback />} />
+        <Route path="/demo" element={<Consulation />} />
       </Route>
     </Routes>
   );

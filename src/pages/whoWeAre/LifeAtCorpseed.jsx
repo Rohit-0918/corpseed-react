@@ -7,7 +7,6 @@ import fourth from "../../assets/LifeAtCorpseed/converted_image.png";
 import img1 from "../../assets/LifeAtCorpseed/aerial-view-business-team.jpg";
 import img2 from "../../assets/LifeAtCorpseed/SM_(226).jpg";
 
-import { style } from "framer-motion/client";
 
 const LifeAtCorpseed = () => {
   return (

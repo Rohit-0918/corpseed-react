@@ -1,21 +1,34 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import axios from "axios";
+import { url } from "../../httpCommon";
 
+// export const getMenuData = createAsyncThunk(
+//   "menu/getMenuData",
+//   async (slug, { rejectWithValue }) => {
+//     try {
+//       const url = slug
+//         ? `https://www.corpseed.com/api/menu/dynamic`
+//         : "https://www.corpseed.com/api/menu/dynamic";
+
+//       const response = await axios.get(url);
+//       return response.data || [];
+//     } catch (error) {
+//       return rejectWithValue(error.response?.data || error.message);
+//     }
+//   }
+// );
 export const getMenuData = createAsyncThunk(
-  "menu/getMenuData",
-  async (slug, { rejectWithValue }) => {
+  "home/search",
+  async (_, { rejectWithValue }) => {
     try {
-      const url = slug
-        ? `https://www.corpseed.com/api/menu/dynamic`
-        : "https://www.corpseed.com/api/menu/dynamic";
-
-      const response = await axios.get(url);
-      return response.data || [];
+      const response = await url.get("/search/popular-services-blogs");
+      return response?.data || [];
     } catch (error) {
       return rejectWithValue(error.response?.data || error.message);
     }
   }
 );
+
 
 const menuSlice = createSlice({
   name: "menu",

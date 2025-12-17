@@ -1,8 +1,6 @@
-import { useScroll } from "framer-motion";
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { getHomeData } from "../../toolkit/slices/HomeSlice";
-import { motion, AnimatePresence } from "framer-motion";
 
 const AllServices = () => {
   const dispatch = useDispatch();
@@ -18,13 +16,11 @@ const AllServices = () => {
 
   return (
     <div className="flex flex-col lg:flex-row w-[90%] mx-auto gap-5">
-      {/* Left  */}
+      {/* Left Sidebar */}
       <div className="w-full lg:w-[30%] gap-5 flex flex-col py-6">
         <div className="relative rounded-full text-gray-400 border border-gray-400 flex gap-2 p-2 w-full">
           <svg
             xmlns="http://www.w3.org/2000/svg"
-            x="0px"
-            y="0px"
             width="20"
             height="20"
             viewBox="0 0 256 256"
@@ -39,141 +35,26 @@ const AllServices = () => {
           <p>This is the dynamic content......</p>
         </div>
 
-        <div className="grid grid-cols-2  h-[400px] overflow-auto gap-4">
-          <div className="p-4 hover:bg-gray-200 rounded-xl">
-            <img
-              src="https://corpseed-main.s3.ap-south-1.amazonaws.com/corpseed/company.png"
-              alt=""
-              className=""
-            />
-            <p>Start Business</p>
-          </div>
-          <div className="p-4 hover:bg-gray-200 rounded-xl">
-            <img
-              src="https://corpseed-main.s3.ap-south-1.amazonaws.com/corpseed/company.png"
-              alt=""
-            />
-            <p>Start Business</p>
-          </div>
-          <div className="p-4 hover:bg-gray-200 rounded-xl">
-            <img
-              src="https://corpseed-main.s3.ap-south-1.amazonaws.com/corpseed/company.png"
-              alt=""
-            />
-            <p>Start Business</p>
-          </div>
-          <div className="p-4 hover:bg-gray-200 rounded-xl">
-            <img
-              src="https://corpseed-main.s3.ap-south-1.amazonaws.com/corpseed/company.png"
-              alt=""
-            />
-            <p>Start Business</p>
-          </div>
-          <div className="p-4 hover:bg-gray-200 rounded-xl">
-            <img
-              src="https://corpseed-main.s3.ap-south-1.amazonaws.com/corpseed/company.png"
-              alt=""
-            />
-            <p>Start Business</p>
-          </div>
-          <div className="p-4 hover:bg-gray-200 rounded-xl">
-            <img
-              src="https://corpseed-main.s3.ap-south-1.amazonaws.com/corpseed/company.png"
-              alt=""
-            />
-            <p>Start Business</p>
-          </div>
-          <div className="p-4 hover:bg-gray-200 rounded-xl">
-            <img
-              src="https://corpseed-main.s3.ap-south-1.amazonaws.com/corpseed/company.png"
-              alt=""
-            />
-            <p>Start Business</p>
-          </div>
-          <div className="p-4 hover:bg-gray-200 rounded-xl">
-            <img
-              src="https://corpseed-main.s3.ap-south-1.amazonaws.com/corpseed/company.png"
-              alt=""
-            />
-            <p>Start Business</p>
-          </div>
-          <div className="p-4 hover:bg-gray-200 rounded-xl">
-            <img
-              src="https://corpseed-main.s3.ap-south-1.amazonaws.com/corpseed/company.png"
-              alt=""
-            />
-            <p>Start Business</p>
-          </div>
-          <div className="p-4 hover:bg-gray-200 rounded-xl">
-            <img
-              src="https://corpseed-main.s3.ap-south-1.amazonaws.com/corpseed/company.png"
-              alt=""
-            />
-            <p>Start Business</p>
-          </div>
-          <div className="p-4 hover:bg-gray-200 rounded-xl">
-            <img
-              src="https://corpseed-main.s3.ap-south-1.amazonaws.com/corpseed/company.png"
-              alt=""
-            />
-            <p>Start Business</p>
-          </div>
-          <div className="p-4 hover:bg-gray-200 rounded-xl">
-            <img
-              src="https://corpseed-main.s3.ap-south-1.amazonaws.com/corpseed/company.png"
-              alt=""
-            />
-            <p>Start Business</p>
-          </div>
-          <div className="p-4 hover:bg-gray-200 rounded-xl">
-            <img
-              src="https://corpseed-main.s3.ap-south-1.amazonaws.com/corpseed/company.png"
-              alt=""
-            />
-            <p>Start Business</p>
-          </div>
-          <div className="p-4 hover:bg-gray-200 rounded-xl">
-            <img
-              src="https://corpseed-main.s3.ap-south-1.amazonaws.com/corpseed/company.png"
-              alt=""
-            />
-            <p>Start Business</p>
-          </div>
-          <div className="p-4 hover:bg-gray-200 rounded-xl">
-            <img
-              src="https://corpseed-main.s3.ap-south-1.amazonaws.com/corpseed/company.png"
-              alt=""
-            />
-            <p>Start Business</p>
-          </div>
-          <div className="p-4 hover:bg-gray-200 rounded-xl">
-            <img
-              src="https://corpseed-main.s3.ap-south-1.amazonaws.com/corpseed/company.png"
-              alt=""
-            />
-            <p>Start Business</p>
-          </div>
-          <div className="p-4 hover:bg-gray-200 rounded-xl">
-            <img
-              src="https://corpseed-main.s3.ap-south-1.amazonaws.com/corpseed/company.png"
-              alt=""
-            />
-            <p>Start Business</p>
-          </div>
-          <div className="p-4 hover:bg-gray-200 rounded-xl">
-            <img
-              src="https://corpseed-main.s3.ap-south-1.amazonaws.com/corpseed/company.png"
-              alt=""
-            />
-            <p>Start Business</p>
-          </div>
-        
+        <div className="grid grid-cols-2 h-[400px] overflow-auto gap-4">
+          {Array(16)
+            .fill(0)
+            .map((_, idx) => (
+              <div
+                key={idx}
+                className="p-4 hover:bg-gray-200 rounded-xl flex flex-col items-center"
+              >
+                <img
+                  src="https://corpseed-main.s3.ap-south-1.amazonaws.com/corpseed/company.png"
+                  alt=""
+                />
+                <p>Start Business</p>
+              </div>
+            ))}
         </div>
       </div>
 
-      {/* Right */}
+      {/* Right Services Section */}
       <div className="flex flex-col gap-4 py-6 w-full lg:w-[70%]">
-        {/* Heading */}
         <div className="p-3 justify-between flex px-12">
           <h1 className="text-3xl text-gray-700">Our Exclusive Services</h1>
           <p className="text-gray-400 text-sm flex my-auto">
@@ -181,8 +62,7 @@ const AllServices = () => {
           </p>
         </div>
 
-        {/* Cards Container */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 ">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
           {loading && <p>Loading services...</p>}
           {error && <p className="text-red-500">{error}</p>}
 
@@ -234,87 +114,89 @@ const AllServices = () => {
         </div>
       </div>
 
-      {/* Animated Modal */}
-      <AnimatePresence>
-        {openModal && (
-          <motion.div
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={() => setOpenModal(false)}
+      {/* Modal */}
+      {openModal && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 transition-opacity duration-300"
+          onClick={() => setOpenModal(false)}
+        >
+          <div
+            className="bg-white w-[90%] max-w-3xl rounded-xl shadow-lg p-6 transform scale-95 opacity-0 transition-all duration-300 animate-scaleFadeIn"
+            onClick={(e) => e.stopPropagation()}
           >
-            <motion.div
-              className="bg-white w-[90%] max-w-3xl rounded-xl shadow-lg p-6 relative"
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-              transition={{ duration: 0.25, ease: "easeOut" }}
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div className="flex justify-between items-center pb-3 border-b border-b-[border-[#444]">
-                <h2 className="text-2xl text-[#444] font-semibold">
-                  Consult Now
-                </h2>
+            <div className="flex justify-between items-center pb-3 border-b border-gray-400">
+              <h2 className="text-2xl text-[#444] font-semibold">Consult Now</h2>
+              <button
+                onClick={() => setOpenModal(false)}
+                className="text-xl text-gray-500 cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+            <div>
+              <p className="p-2 text-body text-[#444]">
+                Please Fill in the form and send us, we'll get back to you as
+                soon as possible.
+              </p>
+            </div>
+
+            {/* Form */}
+            <form className="mt-4 grid grid-cols-2 gap-4">
+              <input
+                type="text"
+                placeholder="Full Name *"
+                className="border text-sm border-[#444] px-3 py-2 rounded"
+                required
+              />
+              <input
+                type="email"
+                placeholder="Email Address"
+                className="border text-sm border-[#444] px-3 py-2 rounded"
+              />
+              <input
+                type="tel"
+                placeholder="Mobile No *"
+                className="border text-sm border-[#444] px-3 py-2 rounded"
+                required
+              />
+              <input
+                type="text"
+                placeholder="City *"
+                className="border text-sm border-[#444] px-3 py-2 rounded"
+                required
+              />
+
+              <textarea
+                placeholder="Message"
+                rows="4"
+                className="col-span-2 text-sm border-[#444] border px-3 py-2 rounded"
+              />
+
+              <div className="col-span-2 flex justify-end">
                 <button
-                  onClick={() => setOpenModal(false)}
-                  className="text-xl text-gray-500 cursor-pointer "
+                  type="submit"
+                  className="bg-blue-600 text-white px-6 py-2 rounded"
                 >
-                  ✕
+                  Submit
                 </button>
               </div>
-              <div>
-                <p className="p-2 text-body text-[#444]">
-                  Please Fill in the form and send us, we'll get back to you as
-                  soon as possible.
-                </p>
-              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
-              {/* Form */}
-              <form className="mt-4 grid grid-cols-2 gap-4">
-                <input
-                  type="text"
-                  placeholder="Full Name *"
-                  className="border text-sm border-[#444] px-3 py-2 rounded"
-                  required
-                />
-                <input
-                  type="email"
-                  placeholder="Email Address"
-                  className="border text-sm border-[#444] px-3 py-2 rounded"
-                />
-                <input
-                  type="tel"
-                  placeholder="Mobile No *"
-                  className="border text-sm border-[#444] px-3 py-2 rounded"
-                  required
-                />
-                <input
-                  type="text"
-                  placeholder="City *"
-                  className="border text-sm border-[#444] px-3 py-2 rounded"
-                  required
-                />
-
-                <textarea
-                  placeholder="Message"
-                  rows="4"
-                  className="col-span-2 text-sm border-[#444] border px-3 py-2 rounded"
-                />
-
-                <div className="col-span-2 flex justify-end">
-                  <button
-                    type="submit"
-                    className="bg-blue-600 text-white px-6 py-2 rounded"
-                  >
-                    Submit
-                  </button>
-                </div>
-              </form>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {/* Tailwind keyframes for modal animation */}
+      <style>
+        {`
+          @keyframes scaleFadeIn {
+            0% { transform: scale(0.95); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+          }
+          .animate-scaleFadeIn {
+            animation: scaleFadeIn 0.25s forwards;
+          }
+        `}
+      </style>
     </div>
   );
 };
