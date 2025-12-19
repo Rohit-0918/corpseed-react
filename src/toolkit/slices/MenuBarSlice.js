@@ -1,34 +1,31 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import axios from "axios";
-import { url } from "../../httpCommon";
 
-// export const getMenuData = createAsyncThunk(
-//   "menu/getMenuData",
-//   async (slug, { rejectWithValue }) => {
-//     try {
-//       const url = slug
-//         ? `https://www.corpseed.com/api/menu/dynamic`
-//         : "https://www.corpseed.com/api/menu/dynamic";
-
-//       const response = await axios.get(url);
-//       return response.data || [];
-//     } catch (error) {
-//       return rejectWithValue(error.response?.data || error.message);
-//     }
-//   }
-// );
-export const getMenuData = createAsyncThunk(
-  "home/search",
+// Nav thunk
+export const getNavData = createAsyncThunk(
+  "menu/getNavData",
   async (_, { rejectWithValue }) => {
     try {
-      const response = await url.get("/search/popular-services-blogs");
-      return response?.data || [];
+      const response = await api.get("/api/menu/dynamic");
+      return response?.data || {};
     } catch (error) {
       return rejectWithValue(error.response?.data || error.message);
     }
   }
 );
 
+// Example other thunk
+export const getMenuData = createAsyncThunk(
+  "menu/getMenuData",
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await api.get("/api/menu/static");
+      return response?.data || {};
+    } catch (error) {
+      return rejectWithValue(error.response?.data || error.message);
+    }
+  }
+);
 
 const menuSlice = createSlice({
   name: "menu",
@@ -40,6 +37,21 @@ const menuSlice = createSlice({
   reducers: {},
   extraReducers: (builder) => {
     builder
+      // nav
+      .addCase(getNavData.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(getNavData.fulfilled, (state, action) => {
+        state.loading = false;
+        state.data = action.payload;
+      })
+      .addCase(getNavData.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+
+      // optional static menu
       .addCase(getMenuData.pending, (state) => {
         state.loading = true;
         state.error = null;

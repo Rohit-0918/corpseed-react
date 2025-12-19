@@ -6,18 +6,11 @@ export default defineConfig({
   server: {
     port: 3000,
     proxy: {
-      "/api/menu": {
-        target: "https://www.corpseed.com",
+      "/api": {
+        target: "http://localhost:8080",
         changeOrigin: true,
-        secure: true,
+        secure: false,
       },
-    },
-  },
-  proxy: {
-    "/api": {
-      target: "http://localhost:8080",
-      changeOrigin: true,
-      secure: false,
     },
   },
 });

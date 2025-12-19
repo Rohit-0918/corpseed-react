@@ -1,123 +1,28 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { getMenuData } from "../toolkit/slices/MenuBarSlice";
+import { getMenuData, getNavData } from "../toolkit/slices/MenuBarSlice";
+import { initialSearchData, searchData } from "./Data.js";
 
 const Header = () => {
- 
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const dropdownRef = useRef(null);
   const searchDrawerRef = useRef(null);
-  // const[initalSearchData, setInitalSearchData] = useState({});
+  const dispatch = useDispatch();
+  const loadingData = [
+    "Who We are",
+    "Enviorment & Sustainability",
+    "Project Planning & Setup",
+    "Compliance & Solutions",
+    "Industries Solution",
+    "All Copseed",
+  ];
 
-  const initalSearchData = {
-    "Popular Services": [
-      {
-        name: "E-Waste Dismantling",
-        url: "/service/e-waste-management-authorization",
-      },
-      { name: "Pest Control License", url: "/service/pest-control-license" },
-      { name: "Gun License", url: "/service/gun-license" },
-      { name: "PESO Certificate", url: "/service/peso-certificate" },
-    ],
-    "Popular Industry": [
-      {
-        name: "Recycling & Waste Management",
-        url: "/industries/recycling-and-waste-management",
-      },
-    ],
-    "Popular Blogs": [
-      {
-        name: "Download Appointment Letter Format in Word and PDF",
-        url: "/knowledge-centre/appointment-letter-format",
-      },
-      {
-        name: "Lifting of Corporate Veil under the Companies Act 2013",
-        url: "/knowledge-centre/lifting-of-corporate-veil-under-the-companies-act-2013",
-      },
-      {
-        name: "Download Rental Agreement Format",
-        url: "/knowledge-centre/rental-agreement-format-download-pdf-word",
-      },
-      {
-        name: "Roles and Functions of Ngo in India",
-        url: "/knowledge-centre/roles-and-functions-of-ngo-in-india",
-      },
-      {
-        name: "Registration of a pet dog in Uttar Pradesh",
-        url: "/knowledge-centre/registration-of-a-pet-dog-in-uttar-pradesh",
-      },
-    ],
-  };
+  const firstLineLoadingData = loadingData[0];
+  const restLoadingData = loadingData.slice(1).join(" ");
 
-  const searchData = {
-    Services: [
-      {
-        url: "https://www.corpseed.com/service/smart-india-hackathon-sih",
-        name: "Smart India Hackathon (SIH)",
-      },
-      {
-        url: "https://www.corpseed.com/service/haryana-state-pollution-control-board",
-        name: "Haryana Pollution Board CTE/CTO",
-      },
-      {
-        url: "https://www.corpseed.com/service/hallmark-registration",
-        name: "Hallmark Registration",
-      },
-      {
-        url: "https://www.corpseed.com/service/himachal-pradesh-state-pollution-control-board",
-        name: "Himachal Pradesh Pollution Board CTE/CTO",
-      },
-      {
-        url: "https://www.corpseed.com/service/health-trade-license",
-        name: "Health Trade License",
-      },
-    ],
-    "Product Based Services": [
-      {
-        url: "https://www.corpseed.com/product/epr-authorization-for-hair-dryer",
-        name: "EPR Authorization for Hair Dryer",
-      },
-      {
-        url: "https://www.corpseed.com/product/epr-authorization-for-other-large-appliances-for-heating",
-        name: "EPR Authorization for Other Large Appliances for Heating",
-      },
-      {
-        url: "https://www.corpseed.com/product/epr-registration-for-high-intensity-discharge-lamps-pressure-sodium-lamps-and-metal-halide-lamps",
-        name: "EPR Registration for High-Intensity Discharge Lamps, Pressure Sodium Lamps and Metal Halide Lamps",
-      },
-      {
-        url: "https://www.corpseed.com/product/epr-authorization-for-handheld-video-game-consoles",
-        name: "EPR Authorization for Handheld Video Game Consoles",
-      },
-      {
-        url: "https://www.corpseed.com/product/epr-authorization-for-hi-fi-recorders",
-        name: "EPR Authorization for Hi-Fi Recorders",
-      },
-    ],
-    "Knowledge Center": [
-      {
-        url: "https://www.corpseed.com/knowledge-centre/what-is-a-hackathon",
-        name: "What is a Hackathon? A Beginner’s Guide to Innovation Marathons",
-      },
-      {
-        url: "https://www.corpseed.com/knowledge-centre/emission-or-discharge-of-environmental-pollutants-for-beehive-hard-coke-oven",
-        name: "Standards for Emission or Discharge of Environmental Pollutants for Beehive Hard Coke Oven",
-      },
-      {
-        url: "https://www.corpseed.com/knowledge-centre/bis-to-mandate-hallmarking-for-silver-jewellery",
-        name: "BIS to Mandate Hallmarking for Silver Jewellery from September 2025",
-      },
-      {
-        url: "https://www.corpseed.com/knowledge-centre/how-to-get-consent-noc-from-haryana-state-pollution-control-board",
-        name: "How to get Consent/NOC from Haryana State Pollution Control Board",
-      },
-      {
-        url: "https://www.corpseed.com/knowledge-centre/new-or-renewal-of-hazardous-waste-management-authorization-in-haryana",
-        name: "How to apply online for new or renewal of Hazardous Waste Management Authorization in Haryana",
-      },
-    ],
-  };
+  console.log(firstLineLoadingData);
+  console.log(restLoadingData);
 
   const filteredResults = query
     ? Object.entries(searchData).reduce((acc, [section, items]) => {
@@ -129,7 +34,7 @@ const Header = () => {
       }, {})
     : null;
 
-  const displayData = query ? filteredResults : initalSearchData;
+  const displayData = query ? filteredResults : initialSearchData;
 
   const [menu, setMenu] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -145,12 +50,10 @@ const Header = () => {
   const [activeMobileLeft, setActiveMobileLeft] = useState(null);
   const [scrolled, setScrolled] = useState(false);
 
-//  const dispatch = useDispatch()
-//   const{data} = useSelector((state) => state.menu);
-//   useEffect(() => {
-//     dispatch(getMenuData())
-//   }, [dispatch])
-
+  // const {data} = useSelector((state)=>state.menu)
+  // useEffect(()=>{
+  //   dispatch(getNavData())
+  // },[dispatch])
 
   useEffect(() => {
     const fetchMenu = async () => {
@@ -170,31 +73,6 @@ const Header = () => {
     fetchMenu();
   }, []);
 
-//  useEffect(() => {
-//     const controller = new AbortController(); 
-//     const signal = controller.signal;
-
-//     const fetchSearchBarData = async () => {
-//       try {
-//         setLoading(true);
-//         const res = await fetch("/search/popular-services-blogs", { signal });
-//         if (!res.ok) throw new Error("Failed to load initial search data");
-//         const data = await res.json();
-//         setInitialSearchData(data || {});
-//       } catch (err) {
-//         if (err.name !== "AbortError") {
-//           setError(err.message || "Something went wrong");
-//         }
-//       } finally {
-//         setLoading(false);
-//       }
-//     };
-
-//     fetchSearchBarData();
-
-//     return () => controller.abort(); 
-//   }, []);
-
   useEffect(() => {
     function handleClickOutside(event) {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -208,18 +86,20 @@ const Header = () => {
     };
   }, []);
   useEffect(() => {
-  function handleClickOutside(event) {
-    if (searchDrawerRef.current && !searchDrawerRef.current.contains(event.target)) {
-      setOpen(false); 
+    function handleClickOutside(event) {
+      if (
+        searchDrawerRef.current &&
+        !searchDrawerRef.current.contains(event.target)
+      ) {
+        setOpen(false);
+      }
     }
-  }
 
-  document.addEventListener("mousedown", handleClickOutside);
-  return () => {
-    document.removeEventListener("mousedown", handleClickOutside);
-  };
-}, []);
-
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -287,11 +167,110 @@ const Header = () => {
     );
   };
 
+  const [drawerOpen, setDrawerOpen] = useState(false);
   // LOADING / ERROR
 
   if (loading) {
     return (
-      <header className="w-full border-b border-gray-200 h-16 flex items-center justify-center"></header>
+      <>
+        <header
+          className={`sticky top-0 w-full block p-2 z-50 bg-white ${
+            scrolled
+              ? "border-b border-gray-200 shadow-md"
+              : "border-b border-transparent shadow-none"
+          }`}
+        >
+          <div className="w-full flex gap-10 items-center justify-between px-4 md:px-8 h-16">
+            {/* logo */}
+            <div className="flex items-center gap-2">
+              <a href="/">
+                <img
+                  src="https://www.corpseed.com/assets/img/brands/CORPSEED.webp"
+                  alt="Corpseed"
+                />
+              </a>
+            </div>
+
+            {/* desktop center nav */}
+            <nav className="hidden md:flex justify-start flex-1">
+              <ul className="flex gap-10 text-sm font-bold text-[#14325c]">
+                {loadingData.slice(0, -1).map((title, index) => (
+                  <li key={index} className="relative font-bold">
+                    <button
+                      onClick={() => setDrawerOpen(true)}
+                      className="pb-1 border-b-2 border-transparent block h-8 text-sm font-bold text-[#14325c]"
+                    >
+                      {renderTwoLineTitle(title)}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </nav>
+
+            {/* desktop right side */}
+            <div className="hidden md:flex items-center gap-8 text-sm font-semibold text-[#14325c]">
+              {/* SEARCH ICON */}
+              <button
+                onClick={() => setDrawerOpen(true)}
+                className="p-2 rounded-full cursor-pointer"
+                aria-label="Search"
+              >
+                <svg width="28" height="28" viewBox="0 0 15 15" fill="none">
+                  <path
+                    d="M14.5 14.5L10.5 10.5M6.5 12.5C3.18629 12.5 0.5 9.81371 0.5 6.5C0.5 3.18629 3.18629 0.5 6.5 0.5C9.81371 0.5 12.5 3.18629 12.5 6.5C12.5 9.81371 9.81371 12.5 6.5 12.5Z"
+                    stroke="#555"
+                    strokeWidth="1.2"
+                  />
+                </svg>
+              </button>
+
+              {/* LAST MENU ITEM */}
+              <button
+                onClick={() => setDrawerOpen(true)}
+                className="pb-1 border-b-2 border-transparent block h-8 font-bold text-[#14325c]"
+              >
+                {renderTwoLineTitle(loadingData.at(-1))}
+              </button>
+            </div>
+
+            {/* mobile actions */}
+            <div className="flex md:hidden items-center gap-4">
+              <button
+                onClick={() => setDrawerOpen(true)}
+                className="flex items-center gap-1 text-sm font-semibold text-[#14325c]"
+              >
+                <svg width="28" height="28" viewBox="0 0 15 15" fill="none">
+                  <path
+                    d="M14.5 14.5L10.5 10.5M6.5 12.5C3.18629 12.5 0.5 9.81371 0.5 6.5C0.5 3.18629 3.18629 0.5 6.5 0.5C9.81371 0.5 12.5 3.18629 12.5 6.5C12.5 9.81371 9.81371 12.5 6.5 12.5Z"
+                    stroke="#555"
+                    strokeWidth="1.2"
+                  />
+                </svg>
+              </button>
+            </div>
+          </div>
+        </header>
+
+        {/* Drawer */}
+        {drawerOpen && (
+          <div className="fixed top-16 left-0 w-full h-[450px] bg-white z-50 shadow-lg px-8 py-4 flex flex-col">
+            {/* Centered Loading Text */}
+            <div className="flex-1 flex flex-col justify-center items-center">
+              <h3 className="text-3xl font-semibold text-[#14325c] mb-2">
+                No Data...
+              </h3>
+            </div>
+
+            {/* Close button */}
+            <button
+              onClick={() => setDrawerOpen(false)}
+              className="absolute top-4 right-4 text-[#555] text-xl font-bold"
+            >
+              &times;
+            </button>
+          </div>
+        )}
+      </>
     );
   }
 
@@ -344,7 +323,7 @@ const Header = () => {
                       setActiveTop(next);
                       if (next === null) resetSubState();
                     }}
-                    className={`pb-1 border-b-2 transition ${
+                    className={`pb-1 border-b-2  ${
                       activeTop === globalIndex
                         ? "border-blue-600 text-blue-600"
                         : "border-transparent hover:border-blue-600"
@@ -359,12 +338,11 @@ const Header = () => {
         </nav>
 
         {/* desktop right side */}
-        <div className="hidden md:flex items-center gap-8 text-sm font-semibold text-[#14325c]"
-        >
+        <div className="hidden md:flex items-center gap-8 text-sm font-semibold text-[#14325c]">
           {/* SEARCH ICON (trigger) */}
           <button
             onClick={() => setOpen((prev) => !prev)}
-            className="p-2 hover:bg-gray-100 rounded-full transition cursor-pointer"
+            className="p-2 hover:bg-gray-100 rounded-full  cursor-pointer"
             aria-label="Search"
           >
             <svg width="28" height="28" viewBox="0 0 15 15" fill="none">
@@ -458,7 +436,7 @@ const Header = () => {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search for Services, Products, Knowledge Center..."
-            className="w-full px-4 py-2 border rounded-md focus:outline-none "
+            className="w-full px-4 py-2 border border-gray-300  focus:outline-none "
           />
         </div>
 
@@ -503,13 +481,13 @@ const Header = () => {
     transition-all duration-500 ease-in-out
     ${
       activeTop !== null
-        ? "opacity-100 max-h-[450px] translate-y-0 pointer-events-auto"
+        ? "opacity-100 max-h-[450px] h-fit translate-y-0 pointer-events-auto"
         : "opacity-0 max-h-0 -translate-y-2 pointer-events-none"
     }
   `}
       >
         {activeTop !== null && menu[activeTop] && (
-          <div className="w-full flex bg-white px-8 h-[450px]">
+          <div className="w-full flex bg-white px-8 h-auto">
             {(() => {
               const { categoryMap, serviceMenu } = menu[activeTop] || {};
               if (!categoryMap) return null;
@@ -541,8 +519,8 @@ const Header = () => {
                 const corpseedItems = categoryMap[leftKey] || [];
                 return (
                   <div className="flex w-full">
-                    <div className="w-1/3 border-gray-200 bg-white">
-                      <button className="flex items-center justify-between w-full px-6 py-3 font-semibold text-left bg-[#1a73e8] text-white">
+                    <div className="w-1/3 border-gray-200 py-2 bg-white">
+                      <button className="flex items-center justify-between w-full px-6 py-2   font-semibold text-left bg-[#1a73e8] text-white">
                         <span>{leftKey}</span>
                         <span>➜</span>
                       </button>
@@ -585,7 +563,7 @@ const Header = () => {
                           setActiveMiddleKey(null);
                           setActiveRightIndex(0);
                         }}
-                        className={`flex items-center px-6 justify-between w-full h-14 font-semibold text-left ${
+                        className={`flex items-center px-6 justify-between w-full py-2 font-semibold text-left ${
                           key === leftKey
                             ? "bg-[#1a73e8] text-white"
                             : "text-[#14325c] hover:bg-gray-100"
@@ -607,7 +585,7 @@ const Header = () => {
                     </div>
 
                     {middleKeys.length === 0 ? (
-                      <div className="px-6 py-1">
+                      <div className="px-6 py-2">
                         <p className="font-semibold text-[#14325c] mb-3">
                           {serviceMenu}
                         </p>
@@ -621,7 +599,7 @@ const Header = () => {
                               setActiveMiddleKey(mKey);
                               setActiveRightIndex(0);
                             }}
-                            className={`flex items-center justify-between w-full px-6 py-3 text-left rounded-md ${
+                            className={`flex items-center justify-between w-full px-6 py-2 text-left ${
                               mKey === middleKey
                                 ? "bg-[#1a73e8] text-white font-semibold"
                                 : "text-[#14325c] hover:bg-gray-50"
@@ -639,13 +617,13 @@ const Header = () => {
                   {isBlog ? (
                     <>
                       <div className="flex-1 bg-white shadow-sm">
-                        <div className="flex items-center gap-2 px-6 h-14 text-xs text-gray-500 border-gray-200">
+                        <div className="flex items-center gap-2 px-6 py-2 text-xs text-gray-500 border-gray-200">
                           <span>{"<"}</span>
                           <span className="font-semibold text-[13px] text-[#14325c]">
                             {middleKey || leftKey}
                           </span>
                         </div>
-                        <div className="flex flex-col px-4 pt-3 gap-3 overflow-y-auto h-[440px]">
+                        <div className="flex flex-col px-4 p-3 gap-3 overflow-y-auto h-[440px]">
                           {rawRightItems.map((item, idx) => (
                             <button
                               key={item.slug || item.name}
@@ -664,13 +642,13 @@ const Header = () => {
                       </div>
 
                       <div className="flex-1 bg-white shadow-sm">
-                        <div className="flex items-center gap-3 px-6 h-14 text-xs text-gray-500 border-gray-200">
+                        <div className="flex items-center gap-3 px-6 py-2 text-xs text-gray-500 border-gray-200">
                           <span>{"<"}</span>
                           <span className="font-medium text-normal text-[12px] text-[#14325c]">
                             {rawRightItems[activeRightIndex]?.name || ""}
                           </span>
                         </div>
-                        <div className="flex flex-col px-4 pt-3 gap-3 overflow-y-auto h-[440px]">
+                        <div className="flex flex-col px-4 py-3 gap-1 overflow-y-auto ">
                           {rightList.map((b) => (
                             <a
                               key={b.url}
@@ -685,7 +663,7 @@ const Header = () => {
                     </>
                   ) : (
                     <div className="flex-1 bg-white shadow-sm">
-                      <div className="flex items-center gap-3 px-6 h-14 text-xs text-gray-500 border-gray-200">
+                      <div className="flex items-center gap-3 px-6 py-2 text-xs text-gray-500 border-gray-200">
                         <span>{"<"}</span>
                         <span className="font-semibold text-[#14325c]">
                           {middleKeys.length === 0
@@ -693,7 +671,7 @@ const Header = () => {
                             : middleKey || leftKey}
                         </span>
                       </div>
-                      <div className="flex flex-col px-4 pt-3 gap-3 overflow-y-auto h-[440px]">
+                      <div className="flex flex-col px-4 py-3 gap-1 overflow-y-auto h-[400px]">
                         {rightList.map((s) => (
                           <a
                             key={s.slug || s.url}
@@ -792,7 +770,7 @@ const Header = () => {
                                 return (
                                   <div key={mKey} className="mb-1">
                                     <p className="font-semibold mb-1">{mKey}</p>
-                                    <div className="pl-3 flex flex-col gap-1">
+                                    <div className="pl-3 flex overflow-y-auto flex-col gap-1">
                                       {services.map((s) => (
                                         <a
                                           key={s.slug || s.url}

@@ -81,7 +81,7 @@ const WhatsAppButton = () => {
       onMouseDown={handleMouseDown}
       onTouchStart={handleTouchStart}
       onClick={handleClick}
-      className="fixed z-50 bg-green-500 rounded-full  shadow-lg hover:scale-110 transition-transform cursor-pointer select-none"
+      className="fixed z-50 hidden sm:flex bg-green-500 rounded-full  shadow-lg hover:scale-110 transition-transform cursor-pointer select-none"
       style={position}
     >
       {/* WhatsApp Icon */}

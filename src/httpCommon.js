@@ -8,10 +8,3 @@ export const api = axios.create({
   },
 });
 
-export const url = axios.create({
-  baseURL : `https://www.corpseed.com`,
-  headers:{
-    "Access-Control-Allow-Origin": "*",
-    "Content-Type": "application/json",
-  }
-})

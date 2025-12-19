@@ -2,11 +2,13 @@ import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import PhoneInput from "react-phone-input-2";
 import "react-phone-input-2/lib/style.css";
-import { postBookMeetingData } from "../toolkit/slices/HomeSlice";
+import { getBookMeetingData, postBookMeetingData } from "../toolkit/slices/HomeSlice";
 
 const BookMeeting = () => {
   const dispatch = useDispatch();
   const { data, loading, error } = useSelector((state) => state.home);
+  const [showOtpModal, setShowOtpModal] = useState(false);
+  const [otp, setOtp] = useState("");
 
   const [formData, setFormData] = useState({
     name: "",
@@ -40,7 +42,24 @@ const BookMeeting = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    dispatch(postBookMeetingData(formData));
+    setShowOtpModal(true);
+    dispatch(getBookMeetingData(formData));
+  };
+  const handleVerifyOtp = () => {
+    if (otp.length !== 6) {
+      alert("Please enter a valid 6-digit OTP");
+      return;
+    }
+
+    dispatch(
+      getBookMeetingData({
+        ...formData,
+        otp,
+      })
+    );
+
+    setShowOtpModal(false);
+    setOtp("");
   };
 
   const getStepsDetails = [
@@ -52,8 +71,10 @@ const BookMeeting = () => {
           Connect with the team corpseed to discuss specific requirements for
           your business at IVR:{" "}
           <span className="text-blue-600 cursor-pointer">7558640644</span> or{" "}
-          <span className="text-blue-600 cursor-pointer">hello@corpseed.com</span>.
-          It takes 20-25 minutes to discuss requirement.
+          <span className="text-blue-600 cursor-pointer">
+            hello@corpseed.com
+          </span>
+          . It takes 20-25 minutes to discuss requirement.
         </>
       ),
     },
@@ -224,6 +245,45 @@ const BookMeeting = () => {
           .
         </p>
       </div>
+      {showOtpModal && (
+       <div className="fixed inset-0  bg-opacity-40 flex items-center justify-center z-50">
+
+          <div className="bg-white rounded-lg p-6 w-[90%] max-w-sm shadow-lg">
+            <h2 className="text-xl font-semibold text-center mb-4">
+              Enter OTP
+            </h2>
+
+            <p className="text-sm text-gray-600 text-center mb-4">
+              Please enter the 6-digit OTP sent to your mobile number
+            </p>
+
+            <input
+              type="text"
+              maxLength="6"
+              value={otp}
+              onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
+              className="w-full text-center text-xl tracking-widest border border-gray-300 rounded-md py-2 mb-4 focus:outline-none focus:border-blue-500"
+              placeholder="******"
+            />
+
+            <div className="flex justify-between gap-3">
+              <button
+                onClick={() => setShowOtpModal(false)}
+                className="w-full py-2 border border-gray-300 rounded-md hover:bg-gray-100"
+              >
+                Cancel
+              </button>
+
+              <button
+                onClick={handleVerifyOtp}
+                className="w-full py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+              >
+                Verify OTP
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 };
