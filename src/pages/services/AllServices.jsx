@@ -137,7 +137,7 @@ const AllServices = () => {
                 </div>
                 <a
                   href={`/service/${service.slug}`}
-                  className="mt-4 flex justify-end text-sm text-blue-600 font-medium hover:underline"
+                  className="mt-4 flex justify-end text-sm text-[#007bff]font-medium hover:underline"
                 >
                   Explore more →
                 </a>
@@ -146,7 +146,7 @@ const AllServices = () => {
           </div>
         </div>
       </div>
-      {/* Moda */}
+      {/* Modal */}
       {openModal && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"

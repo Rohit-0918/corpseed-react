@@ -278,7 +278,6 @@ const Header = () => {
                 />
               </svg>
             </span>
-           
           </button>
           <button
             className="flex flex-col justify-between w-6 h-4"
