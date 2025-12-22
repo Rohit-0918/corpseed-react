@@ -11,6 +11,17 @@ export default defineConfig({
         changeOrigin: true,
         secure: false,
       },
+       "/corpseed-menu": {
+      target: "https://www.corpseed.com",
+      changeOrigin: true,
+      rewrite: (p) => p.replace(/^\/corpseed-menu/, "/api/menu/dynamic"),
+    },
+    "/corpseed-search": {
+      target: "https://www.corpseed.com",
+      changeOrigin: true,
+      rewrite: (p) =>
+        p.replace(/^\/corpseed-search/, "/search/popular-services-blogs"),
+    },
     },
   },
 });

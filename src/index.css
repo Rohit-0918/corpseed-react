@@ -1,1 +1,25 @@
 @import "tailwindcss";
+
+/* custom blue scrollbar */
+.scrollbar-blue::-webkit-scrollbar {
+  width: 8px;
+}
+
+.scrollbar-blue::-webkit-scrollbar-track {
+  background: #e5e7eb; /* slate-200 */
+}
+
+.scrollbar-blue::-webkit-scrollbar-thumb {
+  background: #2563eb; /* blue-600 */
+  border-radius: 9999px;
+}
+
+.scrollbar-blue::-webkit-scrollbar-thumb:hover {
+  background: #1d4ed8; /* blue-700 */
+}
+
+/* Firefox */
+.scrollbar-blue {
+  scrollbar-width: thin;
+  scrollbar-color: #2563eb #e5e7eb;
+}

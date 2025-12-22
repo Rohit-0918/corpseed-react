@@ -1,119 +1,104 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { getMenuData, getNavData } from "../toolkit/slices/MenuBarSlice";
-import { initialSearchData, searchData } from "./Data.js";
+import { getNavData } from "../toolkit/slices/MenuBarSlice";
+import { useNavigate } from "react-router-dom";
+
+const loadingData = [
+  "Who We are",
+  "Enviorment & Sustainability",
+  "Project Planning & Setup",
+  "Compliance & Solutions",
+  "Industries Solution",
+  "All Copseed",
+];
+// const navigate = useNavigate();
 
 const Header = () => {
-  const [open, setOpen] = useState(false);
-  const [query, setQuery] = useState("");
-  const dropdownRef = useRef(null);
-  const searchDrawerRef = useRef(null);
-  const dispatch = useDispatch();
-  const loadingData = [
-    "Who We are",
-    "Enviorment & Sustainability",
-    "Project Planning & Setup",
-    "Compliance & Solutions",
-    "Industries Solution",
-    "All Copseed",
-  ];
+  const [navData, setNavData] = useState([]);
+  const [navLoading, setNavLoading] = useState(true);
 
-  const firstLineLoadingData = loadingData[0];
-  const restLoadingData = loadingData.slice(1).join(" ");
-
-  console.log(firstLineLoadingData);
-  console.log(restLoadingData);
-
-  const filteredResults = query
-    ? Object.entries(searchData).reduce((acc, [section, items]) => {
-        const matches = items.filter((item) =>
-          item.name.toLowerCase().includes(query.toLowerCase())
-        );
-        if (matches.length > 0) acc[section] = matches;
-        return acc;
-      }, {})
-    : null;
-
-  const displayData = query ? filteredResults : initialSearchData;
-
-  const [menu, setMenu] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [searchData, setSearchData] = useState({});
+  const [searchLoading, setSearchLoading] = useState(true);
 
   const [activeTop, setActiveTop] = useState(null);
   const [activeLeftKey, setActiveLeftKey] = useState(null);
   const [activeMiddleKey, setActiveMiddleKey] = useState(null);
-  const [activeRightIndex, setActiveRightIndex] = useState(0);
+  const [activeRightIndex, setActiveRightIndex] = useState(null);
 
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [activeMobileTop, setActiveMobileTop] = useState(null);
   const [activeMobileLeft, setActiveMobileLeft] = useState(null);
+
+  const [showSearchDrawer, setShowSearchDrawer] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
-  // const {data} = useSelector((state)=>state.menu)
-  // useEffect(()=>{
+  const searchDrawerRef = useRef(null);
+
+  // const dispatch = useDispatch();
+  // const{data, loading, error} = useSelector((state) => state.menu)
+  //   useEffect(()=>{
   //   dispatch(getNavData())
   // },[dispatch])
 
+  // --------- FETCH NAV DATA ----------
   useEffect(() => {
-    const fetchMenu = async () => {
+    const fetchNav = async () => {
       try {
-        setLoading(true);
-        const res = await fetch("/api/menu/dynamic");
-        if (!res.ok) throw new Error("Failed to load menu");
-        const data = await res.json();
-        setMenu(data || []);
-      } catch (err) {
-        setError(err.message || "Something went wrong");
+        const res = await fetch("/corpseed-menu");
+        const json = await res.json();
+        setNavData(Array.isArray(json) ? json : []);
+      } catch (e) {
+        setNavData([]);
       } finally {
-        setLoading(false);
+        setNavLoading(false);
       }
     };
-
-    fetchMenu();
+    fetchNav();
   }, []);
 
+  // --------- FETCH SEARCH DATA ----------
   useEffect(() => {
-    function handleClickOutside(event) {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setActiveTop(null);
+    const fetchSearch = async () => {
+      try {
+        const res = await fetch("/corpseed-search");
+        const json = await res.json();
+        setSearchData(json || {});
+      } catch (e) {
+        setSearchData({});
+      } finally {
+        setSearchLoading(false);
       }
-    }
-
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, []);
-  useEffect(() => {
-    function handleClickOutside(event) {
-      if (
-        searchDrawerRef.current &&
-        !searchDrawerRef.current.contains(event.target)
-      ) {
-        setOpen(false);
-      }
-    }
-
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
+    fetchSearch();
   }, []);
 
+  // scroll detector for header border/shadow
   useEffect(() => {
-    const handleScroll = () => {
-      setScrolled(window.scrollY > 0);
-    };
-
+    const handleScroll = () => setScrolled(window.scrollY > 0);
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  // safe fallbacks
+  const safeNavData = Array.isArray(navData) ? navData : [];
+  const safeSearchData =
+    searchData && typeof searchData === "object" ? searchData : {};
+
   const resetSubState = () => {
     setActiveLeftKey(null);
     setActiveMiddleKey(null);
-    setActiveRightIndex(0);
+    setActiveRightIndex(null);
+  };
+
+  const handleTopEnter = (index) => {
+    setShowSearchDrawer(false);
+    setActiveTop(index);
+    resetSubState();
+  };
+
+  const handleTopLeave = () => {
+    setActiveTop(null);
+    resetSubState();
   };
 
   const getLeftKeys = (categoryMap) => Object.keys(categoryMap || {});
@@ -127,24 +112,25 @@ const Header = () => {
   };
 
   const getRightItems = (categoryMap, leftKey, middleKey) => {
-    if (!categoryMap || !leftKey) return { items: [], isBlog: false };
+    if (!categoryMap || !leftKey) return { items: [], isBlogParent: false };
     const leftVal = categoryMap[leftKey];
-    if (!leftVal) return { items: [], isBlog: false };
+    if (!leftVal) return { items: [], isBlogParent: false };
 
     if (Array.isArray(leftVal)) {
-      return { items: leftVal, isBlog: false };
+      return { items: leftVal, isBlogParent: false };
     }
 
-    if (!middleKey) return { items: [], isBlog: false };
+    if (!middleKey) return { items: [], isBlogParent: false };
 
     const middleVal = leftVal[middleKey];
-    if (!middleVal || !middleVal.length) return { items: [], isBlog: false };
+    if (!middleVal || !middleVal.length)
+      return { items: [], isBlogParent: false };
 
-    if (middleVal[0].blogName && Array.isArray(middleVal[0].blogName)) {
-      return { items: middleVal, isBlog: true };
+    if (Array.isArray(middleVal) && middleVal[0]?.blogName) {
+      return { items: middleVal, isBlogParent: true };
     }
 
-    return { items: middleVal, isBlog: false };
+    return { items: middleVal, isBlogParent: false };
   };
 
   const renderTwoLineTitle = (text) => {
@@ -153,7 +139,7 @@ const Header = () => {
     if (parts.length === 1) {
       return (
         <span className="flex flex-col leading-tight text-center">
-          <span className="capitalize font-semibold">{parts[0]}</span>
+          <span className="capitalize font-bold">{parts[0]}</span>
         </span>
       );
     }
@@ -162,211 +148,115 @@ const Header = () => {
     return (
       <span className="flex flex-col leading-tight text-center">
         <span className="capitalize font-bold">{first}</span>
-        <span className="capitalize font-bold">{rest}</span>
+        <span className="capitalize font-bold tracking-wide">{rest}</span>
       </span>
     );
   };
 
-  const [drawerOpen, setDrawerOpen] = useState(false);
-  // LOADING / ERROR
+  const mainMenus = navLoading
+    ? loadingData.slice(0, loadingData.length - 1).map((label) => ({
+        serviceMenu: label,
+        categoryMap: {},
+      }))
+    : safeNavData.slice(0, Math.max(safeNavData.length - 1, 0));
 
-  if (loading) {
-    return (
-      <>
-        <header
-          className={`sticky top-0 w-full block p-2 z-50 bg-white ${
-            scrolled
-              ? "border-b border-gray-200 shadow-md"
-              : "border-b border-transparent shadow-none"
-          }`}
-        >
-          <div className="w-full flex gap-10 items-center justify-between px-4 md:px-8 h-16">
-            {/* logo */}
-            <div className="flex items-center gap-2">
-              <a href="/">
-                <img
-                  src="https://www.corpseed.com/assets/img/brands/CORPSEED.webp"
-                  alt="Corpseed"
-                />
-              </a>
-            </div>
+  const lastMenu = navLoading
+    ? { serviceMenu: loadingData[loadingData.length - 1], categoryMap: {} }
+    : safeNavData.length > 0
+    ? safeNavData[safeNavData.length - 1]
+    : null;
 
-            {/* desktop center nav */}
-            <nav className="hidden md:flex justify-start flex-1">
-              <ul className="flex gap-10 text-sm font-bold text-[#14325c]">
-                {loadingData.slice(0, -1).map((title, index) => (
-                  <li key={index} className="relative font-bold">
-                    <button
-                      onClick={() => setDrawerOpen(true)}
-                      className="pb-1 border-b-2 border-transparent block h-8 text-sm font-bold text-[#14325c]"
-                    >
-                      {renderTwoLineTitle(title)}
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            </nav>
+  const listHeightStyle = { height: "402px" };
+  const searchSections = Object.entries(safeSearchData);
 
-            {/* desktop right side */}
-            <div className="hidden md:flex items-center gap-8 text-sm font-semibold text-[#14325c]">
-              {/* SEARCH ICON */}
-              <button
-                onClick={() => setDrawerOpen(true)}
-                className="p-2 rounded-full cursor-pointer"
-                aria-label="Search"
-              >
-                <svg width="28" height="28" viewBox="0 0 15 15" fill="none">
-                  <path
-                    d="M14.5 14.5L10.5 10.5M6.5 12.5C3.18629 12.5 0.5 9.81371 0.5 6.5C0.5 3.18629 3.18629 0.5 6.5 0.5C9.81371 0.5 12.5 3.18629 12.5 6.5C12.5 9.81371 9.81371 12.5 6.5 12.5Z"
-                    stroke="#555"
-                    strokeWidth="1.2"
-                  />
-                </svg>
-              </button>
+  // close search drawer on outside click
+  useEffect(() => {
+    if (!showSearchDrawer) return;
 
-              {/* LAST MENU ITEM */}
-              <button
-                onClick={() => setDrawerOpen(true)}
-                className="pb-1 border-b-2 border-transparent block h-8 font-bold text-[#14325c]"
-              >
-                {renderTwoLineTitle(loadingData.at(-1))}
-              </button>
-            </div>
+    const handleClick = (e) => {
+      if (
+        searchDrawerRef.current &&
+        !searchDrawerRef.current.contains(e.target)
+      ) {
+        setShowSearchDrawer(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, [showSearchDrawer]);
 
-            {/* mobile actions */}
-            <div className="flex md:hidden items-center gap-4">
-              <button
-                onClick={() => setDrawerOpen(true)}
-                className="flex items-center gap-1 text-sm font-semibold text-[#14325c]"
-              >
-                <svg width="28" height="28" viewBox="0 0 15 15" fill="none">
-                  <path
-                    d="M14.5 14.5L10.5 10.5M6.5 12.5C3.18629 12.5 0.5 9.81371 0.5 6.5C0.5 3.18629 3.18629 0.5 6.5 0.5C9.81371 0.5 12.5 3.18629 12.5 6.5C12.5 9.81371 9.81371 12.5 6.5 12.5Z"
-                    stroke="#555"
-                    strokeWidth="1.2"
-                  />
-                </svg>
-              </button>
-            </div>
-          </div>
-        </header>
-
-        {/* Drawer */}
-        {drawerOpen && (
-          <div className="fixed top-16 left-0 w-full h-[450px] bg-white z-50 shadow-lg px-8 py-4 flex flex-col">
-            {/* Centered Loading Text */}
-            <div className="flex-1 flex flex-col justify-center items-center">
-              <h3 className="text-3xl font-semibold text-[#14325c] mb-2">
-                No Data...
-              </h3>
-            </div>
-
-            {/* Close button */}
-            <button
-              onClick={() => setDrawerOpen(false)}
-              className="absolute top-4 right-4 text-[#555] text-xl font-bold"
-            >
-              &times;
-            </button>
-          </div>
-        )}
-      </>
-    );
-  }
-
-  if (error) {
-    return (
-      <header
-        className={`w-full bg-white sticky top-0 z-50 border-b ${
-          scrolled ? "border-gray-200 shadow-md" : "border-transparent"
-        }`}
-      >
-        <span className="text-sm text-red-500">{error}</span>
-      </header>
-    );
-  }
-
-  const mainMenus = menu.slice(0, Math.max(menu.length - 1, 0));
-  const lastMenu = menu.length > 0 ? menu[menu.length - 1] : null;
+  const openSearchDrawer = () => {
+    setActiveTop(null);
+    resetSubState();
+    setShowSearchDrawer(true);
+  };
 
   return (
     <header
-      className={`sticky top-0 w-full block p-2 z-50 bg-white ${
+      className={`sticky top-0 w-full bg-white  z-50 ${
         scrolled
           ? "border-b border-gray-200 shadow-md"
           : "border-b border-transparent shadow-none"
       }`}
     >
       {/* TOP BAR */}
-      <div className="w-full flex gap-10 items-center justify-between px-4 md:px-8 h-16">
+      <div className="w-full flex gap-13 items-center justify-between px-4 md:px-10 py-3">
         {/* logo */}
-        <div className="flex items-center gap-2">
-          <a href="/">
-            <img
-              src="https://www.corpseed.com/assets/img/brands/CORPSEED.webp"
-              alt="Corpseed"
-            />
-          </a>
-        </div>
+        <a href="/" className="flex items-center gap-2">
+          <img
+            src="https://www.corpseed.com/assets/img/brands/CORPSEED.webp"
+            alt="Corpseed logo"
+            className="object-contain "
+          />
+        </a>
 
         {/* desktop center nav */}
-        <nav className="hidden md:flex justify-start flex-1 ">
-          <ul className="flex gap-10 text-sm font-bold text-[#14325c]">
-            {mainMenus.map((item, index) => {
-              const globalIndex = index;
-              return (
-                <li key={item.serviceMenu} className="relative font-bold">
-                  <button
-                    onClick={() => {
-                      const next =
-                        activeTop === globalIndex ? null : globalIndex;
-                      setActiveTop(next);
-                      if (next === null) resetSubState();
-                    }}
-                    className={`pb-1 border-b-2  ${
-                      activeTop === globalIndex
-                        ? "border-blue-600 text-blue-600"
-                        : "border-transparent hover:border-blue-600"
-                    }`}
-                  >
-                    {renderTwoLineTitle(item.serviceMenu)}
-                  </button>
-                </li>
-              );
-            })}
+        <nav className="hidden md:flex flex-1 justify-start">
+          <ul className="flex gap-5 text-sm font-bold text-[#14325c]">
+            {mainMenus.map((item, index) => (
+              <li
+                key={item.serviceMenu}
+                className="relative"
+                onMouseEnter={() => handleTopEnter(index)}
+              >
+                <button
+                  className={`flex items-center cursor-pointer justify-center px-2 py-2 border-b-2 transition-colors duration-150 ease-out ${
+                    !navLoading && activeTop === index
+                      ? "border-blue-600 text-blue-600"
+                      : "border-transparent hover:border-blue-600 hover:text-blue-600"
+                  }`}
+                >
+                  {renderTwoLineTitle(item.serviceMenu)}
+                </button>
+              </li>
+            ))}
           </ul>
         </nav>
 
-        {/* desktop right side */}
-        <div className="hidden md:flex items-center gap-8 text-sm font-semibold text-[#14325c]">
-          {/* SEARCH ICON (trigger) */}
+        {/* desktop right */}
+        <div className="hidden md:flex items-center gap-8 text-sm font-bold text-[#14325c]">
           <button
-            onClick={() => setOpen((prev) => !prev)}
-            className="p-2 hover:bg-gray-100 rounded-full  cursor-pointer"
-            aria-label="Search"
+            onClick={openSearchDrawer}
+            className="flex items-center gap-2 px-3 cursor-pointer  py-2 transition-colors duration-150 ease-out "
           >
-            <svg width="28" height="28" viewBox="0 0 15 15" fill="none">
-              <path
-                d="M14.5 14.5L10.5 10.5M6.5 12.5C3.18629 12.5 0.5 9.81371 0.5 6.5C0.5 3.18629 3.18629 0.5 6.5 0.5C9.81371 0.5 12.5 3.18629 12.5 6.5C12.5 9.81371 9.81371 12.5 6.5 12.5Z"
-                stroke="#555"
-                strokeWidth="1.2"
-              />
-            </svg>
+            <span className="flex items-center justify-center rounded-full">
+              <svg width="28" height="28" viewBox="0 0 15 15" fill="none">
+                <path
+                  d="M14.5 14.5L10.5 10.5M6.5 12.5C3.18629 12.5 0.5 9.81371 0.5 6.5C0.5 3.18629 3.18629 0.5 6.5 0.5C9.81371 0.5 12.5 3.18629 12.5 6.5C12.5 9.81371 9.81371 12.5 6.5 12.5Z"
+                  stroke="#555"
+                />
+              </svg>
+            </span>
+            <span className="font-bold">Search</span>
           </button>
 
-          {/* LAST MENU ITEM ON RIGHT */}
           {lastMenu && (
             <button
-              onClick={() => {
-                const idx = menu.length - 1;
-                const next = activeTop === idx ? null : idx;
-                setActiveTop(next);
-                if (next === null) resetSubState();
-              }}
-              className={`pb-1 border-b-2 transition ${
-                activeTop === menu.length - 1
+              onMouseEnter={() => handleTopEnter(safeNavData.length - 1)}
+              className={`flex items-center cursor-pointer justify-center px-2 py-2 border-b-2 transition-colors duration-150 ease-out ${
+                activeTop === safeNavData.length - 1
                   ? "border-blue-600 text-blue-600"
-                  : "border-transparent hover:border-blue-600"
+                  : "border-transparent hover:border-blue-600 hover:text-blue-600"
               }`}
             >
               {renderTwoLineTitle(lastMenu.serviceMenu)}
@@ -376,327 +266,462 @@ const Header = () => {
 
         {/* mobile actions */}
         <div className="flex md:hidden items-center gap-4">
-          <button className="flex items-center gap-1 text-sm font-semibold text-[#14325c]">
-            <svg width="28" height="28" viewBox="0 0 15 15" fill="none">
-              <path
-                d="M14.5 14.5L10.5 10.5M6.5 12.5C3.18629 12.5 0.5 9.81371 0.5 6.5C0.5 3.18629 3.18629 0.5 6.5 0.5C9.81371 0.5 12.5 3.18629 12.5 6.5C12.5 9.81371 9.81371 12.5 6.5 12.5Z"
-                stroke="#555"
-                strokeWidth="1.2"
-              />
-            </svg>
+          <button
+            className="flex items-center gap-1 text-sm font-bold text-[#14325c]"
+            onClick={openSearchDrawer}
+          >
+            <span className="w-6 h-6 rounded-full   flex items-center justify-center">
+              <svg viewBox="0 0 15 15" fill="none">
+                <path
+                  d="M14.5 14.5L10.5 10.5M6.5 12.5C3.18629 12.5 0.5 9.81371 0.5 6.5C0.5 3.18629 3.18629 0.5 6.5 0.5C9.81371 0.5 12.5 3.18629 12.5 6.5C12.5 9.81371 9.81371 12.5 6.5 12.5Z"
+                  stroke="#555"
+                />
+              </svg>
+            </span>
+           
           </button>
           <button
+            className="flex flex-col justify-between w-6 h-4"
             onClick={() => {
-              setIsMobileOpen((prev) => !prev);
+              setIsMobileOpen((p) => !p);
               setActiveMobileTop(null);
               setActiveMobileLeft(null);
             }}
             aria-label="Toggle navigation"
-            className="relative flex items-center justify-center w-8 h-8"
           >
             <span
-              className={`
-      absolute h-[3px] w-6 bg-[#14325c] rounded
-      transition-all duration-300 ease-in-out
-      ${isMobileOpen ? "rotate-45" : "-translate-y-2"}
-    `}
+              className={`h-[2px] bg-[#14325c] transition-transform duration-150 ease-out ${
+                isMobileOpen ? "rotate-45 translate-y-[5px]" : ""
+              }`}
             />
-
             <span
-              className={`
-      absolute h-[3px] w-6 bg-[#14325c] rounded
-      transition-all duration-300 ease-in-out
-      ${isMobileOpen ? "opacity-0" : ""}
-    `}
+              className={`h-[2px] bg-[#14325c] transition-opacity duration-150 ease-out ${
+                isMobileOpen ? "opacity-0" : "opacity-100"
+              }`}
             />
-
             <span
-              className={`
-      absolute h-[3px] w-6 bg-[#14325c] rounded
-      transition-all duration-300 ease-in-out
-      ${isMobileOpen ? "-rotate-45" : "translate-y-2"}
-    `}
+              className={`h-[2px] bg-[#14325c] transition-transform duration-150 ease-out ${
+                isMobileOpen ? "-rotate-45 -translate-y-[5px]" : ""
+              }`}
             />
           </button>
         </div>
       </div>
 
-      {/* SEARCH DRAWER – full width, under navbar, animated*/}
+      {/* DESKTOP MEGA MENU */}
       <div
         className={`
-          absolute left-0 top-full  w-screen bg-white z-40
-          shadow-[0_4px_12px_rgba(0,0,0,0.15)]
-          transition-all duration-500 ease-in-out overflow-hidden
-          ${open ? "opacity-100 max-h-[400px]" : "opacity-0 max-h-0"}
-        `}
-      >
-        <div className="px-16 py-6">
-          <input
-            type="text"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search for Services, Products, Knowledge Center..."
-            className="w-full px-4 py-2 border border-gray-300  focus:outline-none "
-          />
-        </div>
-
-        <div className="h-[450px] overflow-y-auto px-16 pb-6">
-          <div className="grid grid-cols-3 gap-10">
-            {displayData &&
-            Object.entries(displayData).length === 0 &&
-            query ? (
-              <p className="text-gray-500 col-span-3">No results found</p>
-            ) : (
-              displayData &&
-              Object.entries(displayData).map(([section, items]) => (
-                <div key={section}>
-                  <h3 className="text-sm font-semibold text-gray-500 mb-4">
-                    {section}
-                  </h3>
-                  <div className="flex flex-col gap-3">
-                    {items.map((item) => (
-                      <a
-                        key={item.url}
-                        href={item.url}
-                        className="text-[#14325c] hover:text-blue-500 hover:underline text-sm"
-                      >
-                        {item.name}
-                      </a>
-                    ))}
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* DESKTOP MEGA MENU – always mounted, same animation as search           */}
-      <div
-        ref={dropdownRef}
-        className={`
-    absolute left-0 top-full w-full flex justify-center pb-3 bg-white z-30
-    shadow-[0_4px_12px_rgba(0,0,0,0.15)]
-    overflow-hidden
-    transition-all duration-500 ease-in-out
+    hidden md:block
+    absolute left-0 top-full
+    w-full bg-white
+    z-50
+    transform transition-all duration-200 ease-out
+    border-b border-b-gray-200 shadow-xl 
     ${
       activeTop !== null
-        ? "opacity-100 max-h-[450px] h-fit translate-y-0 pointer-events-auto"
-        : "opacity-0 max-h-0 -translate-y-2 pointer-events-none"
+        ? "translate-y-0 opacity-100 pointer-events-auto"
+        : "-translate-y-2 opacity-0 pointer-events-none"
     }
   `}
+        onMouseLeave={handleTopLeave}
       >
-        {activeTop !== null && menu[activeTop] && (
-          <div className="w-full flex bg-white px-8 h-auto">
-            {(() => {
-              const { categoryMap, serviceMenu } = menu[activeTop] || {};
-              if (!categoryMap) return null;
-
-              const leftKeys = getLeftKeys(categoryMap);
-              const leftKey = activeLeftKey || leftKeys[0];
-
-              const middleKeys = leftKey
-                ? getMiddleKeys(categoryMap, leftKey)
-                : [];
-              const middleKey =
-                middleKeys.length > 0 ? activeMiddleKey || middleKeys[0] : null;
-
-              const { items: rawRightItems, isBlog } = getRightItems(
-                categoryMap,
-                leftKey,
-                middleKey
-              );
-
-              const rightList =
-                isBlog && rawRightItems[activeRightIndex]?.blogName
-                  ? rawRightItems[activeRightIndex].blogName
-                  : rawRightItems;
-
-              const isWhoWeAre = serviceMenu === "Who We Are";
-
-              // FIRST MENU 2-LEVEL
-              if (isWhoWeAre) {
-                const corpseedItems = categoryMap[leftKey] || [];
-                return (
-                  <div className="flex w-full">
-                    <div className="w-1/3 border-gray-200 py-2 bg-white">
-                      <button className="flex items-center justify-between w-full px-6 py-2   font-semibold text-left bg-[#1a73e8] text-white">
-                        <span>{leftKey}</span>
-                        <span>➜</span>
-                      </button>
+        <div className="mx-auto w-full h-[450px] bg-white overflow-hidden">
+          {activeTop !== null && (
+            <>
+              {(() => {
+                if (navLoading) {
+                  return (
+                    <div className="flex w-full h-full items-center justify-center text-lg text-slate-500">
+                      Loading menu…
                     </div>
+                  );
+                }
+                const activeItem = safeNavData[activeTop];
+                if (!activeItem) {
+                  return null;
+                }
 
-                    <div className="w-2/3 bg-white">
-                      <div className="flex items-center gap-3 px-6 py-2 text-gray-500 border-gray-200">
-                        <span>{"<"}</span>
-                        <span className="font-semibold text-[14px] text-[#14325c]">
-                          {leftKey}
-                        </span>
+                const { categoryMap, serviceMenu } = activeItem;
+                const leftKeys = getLeftKeys(categoryMap);
+                const isWhoWeAre = serviceMenu === "Who We Are";
+
+                if (isWhoWeAre) {
+                  const leftKey = activeLeftKey;
+                  const corpseedItems =
+                    leftKey && Array.isArray(categoryMap[leftKey])
+                      ? categoryMap[leftKey]
+                      : [];
+
+                  return (
+                    <div className="flex w-full h-full ">
+                      <div className="w-1/3 h-full border-r py-3 border-slate-200">
+                        <div
+                          className="overflow-y-auto scrollbar-blue pt-2 px-4"
+                          style={listHeightStyle}
+                        >
+                          {leftKeys.map((key) => {
+                            const isActive = key === leftKey;
+                            return (
+                              <button
+                                key={key}
+                                onMouseEnter={() => {
+                                  setActiveLeftKey(key);
+                                  setActiveMiddleKey(null);
+                                  setActiveRightIndex(null);
+                                }}
+                                className={`group flex py-2 w-full  hover:text-[#1d4ed8] items-center justify-between rounded-md px-4 mb-1 text-sm font-semibold text-left transition-all duration-150 ease-out  mx-auto ${
+                                  isActive
+                                    ? "bg-[#f5f7ff] text-[#14325c] shadow-sm"
+                                    : "bg-transparent text-[#14325c] hover:bg-[#f5f7ff]"
+                                }`}
+                              >
+                                <span className="transition-all duration-150 ease-out group-hover:scale-[1.03]">
+                                  {key}
+                                </span>
+                                <span
+                                  className={`transition-all duration-150 ease-out text-blue-600 ${
+                                    isActive
+                                      ? "opacity-100 translate-x-1"
+                                      : "opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-1"
+                                  }`}
+                                >
+                                  ➜
+                                </span>
+                              </button>
+                            );
+                          })}
+                        </div>
                       </div>
 
-                      <div className="flex flex-col px-6 pt-2 gap-2 overflow-y-auto h-[440px]">
-                        {corpseedItems.map((s) => (
+                      <div className="w-2/3 py-3 h-full bg-white">
+                        <div className="flex items-center gap-3 px-6 h-14 text-xs text-slate-500 border-b border-slate-100">
+                          <span className="text-xs">{"<"}</span>
+                          <span className="font-semibold text-[#14325c]">
+                            {leftKey || ""}
+                          </span>
+                        </div>
+                        <div
+                          className="overflow-y-auto scrollbar-blue px-6 pt-2 pb-4 gap-2"
+                          style={listHeightStyle}
+                        >
+                          {leftKey &&
+                            corpseedItems.map((s) => (
+                              <a
+                                key={s.slug || s.url}
+                                href={s.url}
+                                className="block py-2 text-sm text-[#14325c] hover:text-blue-600 hover:underline transition-colors duration-150 ease-out"
+                              >
+                                {s.name}
+                              </a>
+                            ))}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                }
+
+                // 3–4 LEVEL MENUS
+                const leftKey = activeLeftKey;
+                const middleKeys =
+                  leftKey && !Array.isArray(categoryMap[leftKey])
+                    ? getMiddleKeys(categoryMap, leftKey)
+                    : [];
+                const middleKey = activeMiddleKey;
+                const { items: rawRightItems, isBlogParent } = getRightItems(
+                  categoryMap,
+                  leftKey,
+                  middleKey
+                );
+                const isFourColumns =
+                  isBlogParent && middleKey && activeRightIndex !== null;
+
+                return (
+                  <div
+                    className="w-full h-full grid transition-all duration-400 ease-out"
+                    style={{
+                      gridTemplateColumns: isFourColumns
+                        ? "1fr 1fr 1fr 1fr"
+                        : "1fr 1fr 1fr",
+                      minWidth: isFourColumns ? "100%" : "75%",
+                    }}
+                  >
+                    {/* COLUMN 1 WITH INLINE ALL SERVICES */}
+                    <div className="h-full border-r py-3 border-slate-200 bg-white transition-all duration-400 ease-out">
+                      <div className="flex items-center justify-between px-6 h-14 text-xs text-slate-500 border-b border-slate-100">
+                        <div className="flex items-center gap-3">
+                          {/* <span className="text-lg">🏠</span> */}
+                          <span className="font-semibold text-lg text-[#14325c]">
+                            Menu
+                          </span>
+                        </div>
+                        <a
+                          href="/all-services"
+                          className="font-semibold text-blue-600 hover:text-blue-700 hover:underline px-2 py-2 rounded transition-all duration-150 ease-out hover:bg-blue-50"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            window.location.href = "/category/all";
+                          }}
+                        >
+                          All Services ➜
+                        </a>
+                      </div>
+
+                      <div
+                        className="overflow-y-auto scrollbar-blue pt-2 px-4"
+                        style={listHeightStyle}
+                      >
+                        {leftKeys.map((key) => {
+                          const isActive = key === leftKey;
+                          return (
+                            <button
+                              key={key}
+                              onMouseEnter={() => {
+                                setActiveLeftKey(key);
+                                setActiveMiddleKey(null);
+                                setActiveRightIndex(null);
+                              }}
+                              className={`group flex py-2 w-full hover:text-[#1d4ed8] items-center justify-between rounded-md px-4 mb-1 text-sm font-semibold text-left transition-all duration-150 ease-out mx-auto ${
+                                isActive
+                                  ? "bg-[#f5f7ff] text-[#14325c] shadow-sm"
+                                  : "bg-transparent text-[#14325c] hover:bg-[#f5f7ff]"
+                              }`}
+                            >
+                              <span className="transition-all duration-150 ease-out  group-hover:scale-[1.03]">
+                                {key}
+                              </span>
+                              <span
+                                className={`transition-all duration-150 ease-out text-blue-600 ${
+                                  isActive
+                                    ? "opacity-100 translate-x-1"
+                                    : "opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-1"
+                                }`}
+                              >
+                                ➜
+                              </span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    {/* COLUMN 2 */}
+                    <div className="h-full py-3 border-r border-slate-200 bg-white transition-all duration-400 ease-out">
+                      <div className="flex items-center gap-3 px-6 h-14 text-xs text-slate-500 border-b border-slate-100">
+                        <div className="flex items-center gap-3 px-6 h-14 text-xs text-slate-500 border-b border-slate-100">
+                          <span className="text-xs">{"<"}</span>
+                          <span className="font-semibold text-[#14325c] hover:underline">
+                            {leftKey || ""}
+                          </span>
+                        </div>
+                      </div>
+                      <div
+                        className="px-6 pt-2 pb-4 overflow-y-auto scrollbar-blue"
+                        style={listHeightStyle}
+                      >
+                        {leftKey &&
+                          middleKeys.map((mKey) => {
+                            const isActive = mKey === middleKey;
+                            return (
+                              <button
+                                key={mKey}
+                                onMouseEnter={() => {
+                                  setActiveMiddleKey(mKey);
+                                  setActiveRightIndex(null);
+                                }}
+                                className={`group flex py-2 w-full  hover:text-[#1d4ed8] items-center justify-between rounded-md px-3 my-1 text-sm text-left transition-all duration-150 ease-out ${
+                                  isActive
+                                    ? "bg-[#f5f7ff] text-[#14325c] font-semibold shadow-sm"
+                                    : "text-[#14325c] hover:bg-[#f5f7ff]"
+                                }`}
+                              >
+                                <span className="transition-all duration-150 ease-out group-hover:scale-[1.03]">
+                                  {mKey}
+                                </span>
+                                <span
+                                  className={`transition-all duration-150 ease-out text-blue-600 ${
+                                    isActive
+                                      ? "opacity-100 translate-x-1"
+                                      : "opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-1"
+                                  }`}
+                                >
+                                  ➜
+                                </span>
+                              </button>
+                            );
+                          })}
+                      </div>
+                    </div>
+
+                    {/* COLUMN 3 */}
+                    <div className="h-full border-r py-3  border-slate-200 bg-white transition-all duration-400 ease-out">
+                      <div className="flex items-center gap-3 px-6 h-14 text-xs text-slate-500 border-b border-slate-100">
+                        <span className="text-xs">{"<"}</span>
+                        <span className="font-semibold text-[#14325c]">
+                          {middleKey || ""}
+                        </span>
+                      </div>
+                      <div
+                        className="px-6 pt-2 pb-4 overflow-y-auto scrollbar-blue"
+                        style={listHeightStyle}
+                      >
+                        {middleKey &&
+                          (isBlogParent
+                            ? rawRightItems.map((item, idx) => {
+                                const isActive = idx === activeRightIndex;
+                                return (
+                                  <button
+                                    key={item.slug || item.name}
+                                    onMouseEnter={() =>
+                                      setActiveRightIndex(idx)
+                                    }
+                                    className={`group flex py-2  hover:text-[#1d4ed8] w-full items-center justify-between rounded-md px-3 my-1 text-sm text-left transition-all duration-150 ease-out ${
+                                      isActive
+                                        ? "bg-[#f5f7ff] text-[#14325c] font-semibold shadow-sm"
+                                        : "text-[#14325c] hover:bg-[#f5f7ff]"
+                                    }`}
+                                  >
+                                    <span className="transition-all duration-150 ease-out group-hover:scale-[1.03]">
+                                      {item.name}
+                                    </span>
+                                    <span
+                                      className={`transition-all duration-150 ease-out text-blue-600 ${
+                                        isActive
+                                          ? "opacity-100 translate-x-1"
+                                          : "opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-1"
+                                      }`}
+                                    >
+                                      ➜
+                                    </span>
+                                  </button>
+                                );
+                              })
+                            : rawRightItems.map((s) => (
+                                <a
+                                  key={s.slug || s.url}
+                                  href={s.url}
+                                  className="block py-2 text-sm text-[#14325c] hover:text-blue-600 hover:underline transition-colors duration-150 ease-out"
+                                >
+                                  {s.name}
+                                </a>
+                              )))}
+                      </div>
+                    </div>
+
+                    {/* COLUMN 4 */}
+                    <div
+                      className={`
+                        h-full bg-white transition-all duration-400 ease-out py-3
+                        ${
+                          isFourColumns
+                            ? "opacity-100 scale-100"
+                            : "opacity-0 scale-105 pointer-events-none"
+                        }
+                      `}
+                    >
+                      <div className="flex items-center gap-3 px-6 h-14 text-xs text-slate-500 border-b border-slate-100">
+                        <span className="text-xs">{"<"}</span>
+                        <span className="font-semibold text-[#14325c]">
+                          {rawRightItems[activeRightIndex]?.name || ""}
+                        </span>
+                      </div>
+                      <div
+                        className="px-6 pt-2 pb-4 overflow-y-auto scrollbar-blue"
+                        style={listHeightStyle}
+                      >
+                        {rawRightItems[activeRightIndex]?.blogName?.map((b) => (
                           <a
-                            key={s.slug || s.url}
-                            href={s.url}
-                            className="text-[#14325c] hover:underline hover:text-blue-500"
+                            key={b.url}
+                            href={b.url}
+                            className="block py-2 text-sm text-[#14325c] hover:text-blue-600 hover:underline transition-colors duration-150 ease-out"
                           >
-                            {s.name}
+                            {b.name}
                           </a>
                         ))}
                       </div>
                     </div>
                   </div>
                 );
-              }
-
-              // OTHER MENUS
-              return (
-                <>
-                  {/* LEFT COLUMN */}
-                  <div className="flex-1 border-gray-200 bg-white">
-                    {leftKeys.map((key) => (
-                      <button
-                        key={key}
-                        onMouseEnter={() => {
-                          setActiveLeftKey(key);
-                          setActiveMiddleKey(null);
-                          setActiveRightIndex(0);
-                        }}
-                        className={`flex items-center px-6 justify-between w-full py-2 font-semibold text-left ${
-                          key === leftKey
-                            ? "bg-[#1a73e8] text-white"
-                            : "text-[#14325c] hover:bg-gray-100"
-                        }`}
-                      >
-                        <span>{key}</span>
-                        <span>➜</span>
-                      </button>
-                    ))}
-                  </div>
-
-                  {/* MIDDLE COLUMN */}
-                  <div className="flex-1 bg-white">
-                    <div className="flex items-center gap-2 px-6 py-2 text-gray-500">
-                      <span>{"<"}</span>
-                      <span className="font-semibold text-[13px] text-[#14325c]">
-                        {leftKey}
-                      </span>
-                    </div>
-
-                    {middleKeys.length === 0 ? (
-                      <div className="px-6 py-2">
-                        <p className="font-semibold text-[#14325c] mb-3">
-                          {serviceMenu}
-                        </p>
-                      </div>
-                    ) : (
-                      <div className="px-6 py-1 overflow-y-auto h-[440px]">
-                        {middleKeys.map((mKey) => (
-                          <button
-                            key={mKey}
-                            onMouseEnter={() => {
-                              setActiveMiddleKey(mKey);
-                              setActiveRightIndex(0);
-                            }}
-                            className={`flex items-center justify-between w-full px-6 py-2 text-left ${
-                              mKey === middleKey
-                                ? "bg-[#1a73e8] text-white font-semibold"
-                                : "text-[#14325c] hover:bg-gray-50"
-                            }`}
-                          >
-                            <span>{mKey}</span>
-                            <span>➜</span>
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-
-                  {/* RIGHT / FAR-RIGHT */}
-                  {isBlog ? (
-                    <>
-                      <div className="flex-1 bg-white shadow-sm">
-                        <div className="flex items-center gap-2 px-6 py-2 text-xs text-gray-500 border-gray-200">
-                          <span>{"<"}</span>
-                          <span className="font-semibold text-[13px] text-[#14325c]">
-                            {middleKey || leftKey}
-                          </span>
-                        </div>
-                        <div className="flex flex-col px-4 p-3 gap-3 overflow-y-auto h-[440px]">
-                          {rawRightItems.map((item, idx) => (
-                            <button
-                              key={item.slug || item.name}
-                              onMouseEnter={() => setActiveRightIndex(idx)}
-                              className={`flex items-center justify-between w-full text-left px-4 py-2 ${
-                                idx === activeRightIndex
-                                  ? "bg-[#1a73e8] text-white font-semibold"
-                                  : "text-[#14325c] hover:bg-gray-50"
-                              }`}
-                            >
-                              <span>{item.name}</span>
-                              <span>➜</span>
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-
-                      <div className="flex-1 bg-white shadow-sm">
-                        <div className="flex items-center gap-3 px-6 py-2 text-xs text-gray-500 border-gray-200">
-                          <span>{"<"}</span>
-                          <span className="font-medium text-normal text-[12px] text-[#14325c]">
-                            {rawRightItems[activeRightIndex]?.name || ""}
-                          </span>
-                        </div>
-                        <div className="flex flex-col px-4 py-3 gap-1 overflow-y-auto ">
-                          {rightList.map((b) => (
-                            <a
-                              key={b.url}
-                              href={b.url}
-                              className="block text-[#14325c] hover:underline hover:text-blue-500 px-4 py-2 "
-                            >
-                              {b.name}
-                            </a>
-                          ))}
-                        </div>
-                      </div>
-                    </>
-                  ) : (
-                    <div className="flex-1 bg-white shadow-sm">
-                      <div className="flex items-center gap-3 px-6 py-2 text-xs text-gray-500 border-gray-200">
-                        <span>{"<"}</span>
-                        <span className="font-semibold text-[#14325c]">
-                          {middleKeys.length === 0
-                            ? leftKey
-                            : middleKey || leftKey}
-                        </span>
-                      </div>
-                      <div className="flex flex-col px-4 py-3 gap-1 overflow-y-auto h-[400px]">
-                        {rightList.map((s) => (
-                          <a
-                            key={s.slug || s.url}
-                            href={s.url}
-                            className="block text-[#14325c] hover:underline hover:text-blue-500 px-4 py-2 "
-                          >
-                            {s.name}
-                          </a>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </>
-              );
-            })()}
-          </div>
-        )}
+              })()}
+            </>
+          )}
+        </div>
       </div>
 
-      {/* MOBILE MENU*/}
+      {/* SEARCH DRAWER – OFFSET BELOW HEADER, MATCH NAV DRAWER HEIGHT */}
+      <div
+        className={`
+    fixed inset-x-0 z-40 transform transition-all duration-200 ease-out
+    md:top-[72px] top-[56px] border-b border-b-gray-200 shadow-xl
+    ${
+      showSearchDrawer
+        ? "translate-y-0 opacity-100 pointer-events-auto"
+        : "-translate-y-2 opacity-0 pointer-events-none"
+    }
+  `}
+      >
+        <div
+          ref={searchDrawerRef}
+          className="w-full h-[450px] bg-white overflow-hidden"
+        >
+          {/* header row */}
+          <div className="flex items-center justify-between px-8 py-4 border-b border-slate-200">
+            <input
+              type="text"
+              placeholder="Search for Services, Industries, Insights and compliance update."
+              className="w-full text-sm px-4 py-3 border border-slate-200 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 transition-all duration-150 ease-out"
+            />
+            <button
+              onClick={() => setShowSearchDrawer(false)}
+              className="ml-4 text-slate-500 hover:text-slate-700 text-lg transition-colors duration-150 ease-out"
+            >
+              ✕
+            </button>
+          </div>
+
+          {/* body – 450px minus header height (~56px) */}
+          <div className="px-8 py-4 h-[394px] overflow-y-auto scrollbar-blue border-b border-b-gray-400">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {searchLoading ? (
+                <div className="col-span-3 flex items-center justify-center text-sm text-slate-500">
+                  Searching…
+                </div>
+              ) : searchSections.length === 0 ? (
+                <div className="col-span-3 flex items-center justify-center text-sm text-slate-500">
+                  No data found.
+                </div>
+              ) : (
+                searchSections.map(([sectionTitle, items]) => (
+                  <div key={sectionTitle}>
+                    <h3 className="mb-3 text-base font-bold text-[#14325c]">
+                      {sectionTitle}
+                    </h3>
+                    <ul className="space-y-1 text-sm">
+                      {items.map((item) => (
+                        <li key={item.url}>
+                          <a
+                            href={item.url}
+                            className="block py-1 text-[#14325c] hover:text-blue-600 hover:underline transition-colors duration-150 ease-out"
+                          >
+                            {item.name}
+                          </a>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* MOBILE MENU */}
 
       {isMobileOpen && (
-        <div className="md:hidden border-t border-gray-200 bg-white">
-          <div className="px-4 py-3 flex flex-col gap-2">
-            {menu.map((item, topIndex) => {
+        <div className="md:hidden border-t border-slate-200 bg-white">
+          <div className="px-4 py-3 flex flex-col gap-1">
+            {safeNavData.map((item, topIndex) => {
               const { categoryMap, serviceMenu } = item;
               const leftKeys = getLeftKeys(categoryMap);
               const isTopOpen = activeMobileTop === topIndex;
@@ -704,11 +729,11 @@ const Header = () => {
               return (
                 <div
                   key={serviceMenu}
-                  className="border-b border-gray-100 pb-2"
+                  className="border-b border-slate-100 pb-1"
                 >
-                  {/* top level: serviceMenu */}
+                  {/* TOP LEVEL (serviceMenu) */}
                   <button
-                    className="w-full flex items-center justify-between py-2 text-sm font-semibold text-[#14325c]"
+                    className="w-full flex items-center justify-between py-3 text-sm font-semibold text-[#14325c]"
                     onClick={() => {
                       const next = isTopOpen ? null : topIndex;
                       setActiveMobileTop(next);
@@ -716,22 +741,43 @@ const Header = () => {
                     }}
                   >
                     <span>{serviceMenu}</span>
-                    <span>{isTopOpen ? "−" : "+"}</span>
+                    <span className="w-4 h-4 text-slate-600">
+                      {isTopOpen ? (
+                        // Chevron up
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          viewBox="0 0 640 640"
+                          className="w-3 h-3"
+                        >
+                          <path d="M297.4 169.4C309.9 156.9 330.2 156.9 342.7 169.4L534.7 361.4C547.2 373.9 547.2 394.2 534.7 406.7C522.2 419.2 501.9 419.2 489.4 406.7L320 237.3L150.6 406.6C138.1 419.1 117.8 419.1 105.3 406.6C92.8 394.1 92.8 373.8 105.3 361.3L297.3 169.3z" />
+                        </svg>
+                      ) : (
+                        // Chevron down
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          viewBox="0 0 448 512"
+                          className="w-3 h-3"
+                        >
+                          <path d="M201.4 406.6c12.5 12.5 32.8 12.5 45.3 0l192-192c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L224 338.7 54.6 169.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3l192 192z" />
+                        </svg>
+                      )}
+                    </span>
                   </button>
 
+                  {/* LEVEL 2: leftKeys (only when top open) */}
                   {isTopOpen && (
-                    <div className="pl-3 flex flex-col gap-2 text-sm text-[#14325c]">
+                    <div className="pl-2 flex flex-col gap-1 text-sm text-[#14325c]">
                       {leftKeys.map((leftKey) => {
                         const leftVal = categoryMap[leftKey];
                         const leftId = `${topIndex}-${leftKey}`;
                         const isLeftOpen = activeMobileLeft === leftId;
 
-                        // 2‑level case: array directly under leftKey (e.g. Who We Are)
+                        // Case 1: 2‑level (array at leftVal)
                         if (Array.isArray(leftVal)) {
                           return (
                             <div key={leftKey} className="mt-1">
                               <button
-                                className="w-full flex items-center justify-between py-1 font-semibold"
+                                className="w-full flex items-center justify-between py-2 font-medium"
                                 onClick={() =>
                                   setActiveMobileLeft(
                                     isLeftOpen ? null : leftId
@@ -739,11 +785,29 @@ const Header = () => {
                                 }
                               >
                                 <span>{leftKey}</span>
-                                <span>{isLeftOpen ? "−" : "+"}</span>
+                                <span className="w-3 h-3 text-slate-600">
+                                  {isLeftOpen ? (
+                                    <svg
+                                      xmlns="http://www.w3.org/2000/svg"
+                                      viewBox="0 0 640 640"
+                                      className="w-3 h-3"
+                                    >
+                                      <path d="M297.4 169.4C309.9 156.9 330.2 156.9 342.7 169.4L534.7 361.4C547.2 373.9 547.2 394.2 534.7 406.7C522.2 419.2 501.9 419.2 489.4 406.7L320 237.3L150.6 406.6C138.1 419.1 117.8 419.1 105.3 406.6C92.8 394.1 92.8 373.8 105.3 361.3L297.3 169.3z" />
+                                    </svg>
+                                  ) : (
+                                    <svg
+                                      xmlns="http://www.w3.org/2000/svg"
+                                      viewBox="0 0 448 512"
+                                      className="w-3 h-3"
+                                    >
+                                      <path d="M201.4 406.6c12.5 12.5 32.8 12.5 45.3 0l192-192c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L224 338.7 54.6 169.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3l192 192z" />
+                                    </svg>
+                                  )}
+                                </span>
                               </button>
 
                               {isLeftOpen && (
-                                <div className="pl-3 flex flex-col gap-1 text-xs">
+                                <div className="pl-4 flex flex-col gap-1 text-xs">
                                   {leftVal.map((s) => (
                                     <a
                                       key={s.slug || s.url}
@@ -759,27 +823,46 @@ const Header = () => {
                           );
                         }
 
-                        // 3‑ & 4‑level case: object under leftKey
+                        // Case 2: 3‑/4‑level (object at leftVal)
                         const middleKeys = Object.keys(leftVal || {});
                         return (
                           <div key={leftKey} className="mt-1">
-                            <p className="py-1 font-semibold">{leftKey}</p>
+                            <p className="py-2 font-semibold">{leftKey}</p>
                             <div className="pl-3 flex flex-col gap-1 text-xs">
                               {middleKeys.map((mKey) => {
-                                const services = leftVal[mKey] || [];
+                                const arr = leftVal[mKey] || [];
                                 return (
                                   <div key={mKey} className="mb-1">
                                     <p className="font-semibold mb-1">{mKey}</p>
-                                    <div className="pl-3 flex overflow-y-auto flex-col gap-1">
-                                      {services.map((s) => (
-                                        <a
-                                          key={s.slug || s.url}
-                                          href={s.url}
-                                          className="py-1"
-                                        >
-                                          {s.name}
-                                        </a>
-                                      ))}
+                                    <div className="pl-3 flex flex-col gap-1">
+                                      {arr.map((s) =>
+                                        s.blogName ? (
+                                          <div key={s.slug || s.name}>
+                                            <p className="font-semibold">
+                                              {s.name}
+                                            </p>
+                                            <div className="pl-3 flex flex-col gap-1">
+                                              {s.blogName.map((b) => (
+                                                <a
+                                                  key={b.url}
+                                                  href={b.url}
+                                                  className="py-1"
+                                                >
+                                                  {b.name}
+                                                </a>
+                                              ))}
+                                            </div>
+                                          </div>
+                                        ) : (
+                                          <a
+                                            key={s.slug || s.url}
+                                            href={s.url}
+                                            className="py-1"
+                                          >
+                                            {s.name}
+                                          </a>
+                                        )
+                                      )}
                                     </div>
                                   </div>
                                 );

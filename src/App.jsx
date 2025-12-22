@@ -20,6 +20,7 @@ import PrivacyPolicy from "./pages/PrivacyPolicy";
 import KnowledgeCenterPage from "./pages/KnowledgeCenter/KnowledgeCenterPage";
 import Consulation from "./pages/KnowledgeCenter/components/Consulation";
 import BottomMobileBar from "./components/BottomMobileBar";
+import DymaicUrlPage from "./pages/DymaicUrlPage";
 
 function App() {
   return (
@@ -42,7 +43,7 @@ function App() {
         <Route path="/industries" element={<IndusPage />} />
         <Route path = "/pages/terms-of-use" element = {<TermsOfUse/>}/>
         <Route path = "/pages/privacy-policy" element = {<PrivacyPolicy/>}/>
-        <Route path="/demo" element={<BottomMobileBar />} />
+        <Route path="/dynamic-url" element={<DymaicUrlPage />} />
       </Route>
     </Routes>
   );
